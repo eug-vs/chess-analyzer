@@ -22,6 +22,7 @@ export interface Position {
   gameIds: string[];
   moves: Move[];
   eval?: EngineEvaluation;
+  analysisInProgress: boolean;
 }
 
 export interface Game {
@@ -77,6 +78,7 @@ export const store = createStoreWithProducer(produce, {
           fen,
           gameIds: [],
           moves: [],
+          analysisInProgress: false,
         };
         if (!node.gameIds.includes(event.gameId))
           node.gameIds.push(event.gameId);
@@ -97,6 +99,10 @@ export const store = createStoreWithProducer(produce, {
       if (!existingMove.gameIds.includes(event.gameId)) {
         existingMove.gameIds.push(event.gameId);
       }
+    },
+    toggleAnalysisStatus(context, event: { fen: string; inProgress: boolean }) {
+      const position = context.graph.get(fenToUniqueKey(event.fen));
+      if (position) position.analysisInProgress = event.inProgress;
     },
   },
 });

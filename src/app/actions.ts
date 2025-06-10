@@ -1,7 +1,7 @@
 "use server";
 
 export async function fetchLichessPgns(
-  playerName = "RebeccaHarris",
+  playerName = "eug_vs",
   since = new Date("2025-06-01"),
   perfType = ["blitz", "bullet"],
 ) {

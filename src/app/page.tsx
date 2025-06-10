@@ -54,7 +54,11 @@ export default function Home() {
   return (
     <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
       <PGNParser />
-      <Button onClick={() => Promise.allSettled(positions.map(analyzeCPL))}>
+      <Button
+        onClick={() =>
+          Promise.allSettled(positions.map((pos) => analyzeCPL(pos, 20)))
+        }
+      >
         <SettingsIcon />
         Analyze bad moves
       </Button>
@@ -81,8 +85,13 @@ export default function Home() {
                 </CardTitle>
                 <CardDescription>{move.lan}</CardDescription>
                 <CardDescription>Depth {move.from.eval?.depth}</CardDescription>
-                <CardDescription>
-                  Played in <b>{move.gameIds.length}</b> games
+                <CardDescription className="flex justify-between items-start">
+                  <span>
+                    Played in <b>{move.gameIds.length}</b> games
+                  </span>
+                  {move.from.analysisInProgress && (
+                    <SettingsIcon className="animate-spin" />
+                  )}
                 </CardDescription>
               </PositionLink>
             </LazilyAnimated>
@@ -105,8 +114,11 @@ export default function Home() {
                   <SwordsIcon />
                   {position.gameIds.length} games
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="flex justify-between items-start">
                   {position.moves.length} distinct moves
+                  {position.analysisInProgress && (
+                    <SettingsIcon className="animate-spin" />
+                  )}
                 </CardDescription>
               </PositionLink>
             </LazilyAnimated>
