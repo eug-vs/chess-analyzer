@@ -3,7 +3,7 @@ import Chessground from "@react-chess/chessground";
 import "./chessground.css";
 import { useIntersectionObserver, usePrevious } from "@uidotdev/usehooks";
 import { useSelector } from "@xstate/store/react";
-import { fenToUniqueKey, Move, store } from "./store";
+import { fenToUniqueKey, store } from "./store";
 import { extractSideToMove } from "./utils";
 import { Key } from "@lichess-org/chessground/types";
 

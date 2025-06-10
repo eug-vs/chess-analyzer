@@ -1,15 +1,14 @@
 "use client";
+import { motion, AnimatePresence } from "motion/react";
 import { useSelector } from "@xstate/store/react";
 import PositionLink from "./positionLink";
 import { store } from "./store";
 import PGNParser from "./pgnParser";
 import _ from "lodash";
 import { analyzeCPL, extractSideToMove } from "./utils";
-import MoveLink from "./moveLink";
-import { useAutoAnimate } from "@formkit/auto-animate/react";
+import { useThrottle } from "@uidotdev/usehooks";
 
 export default function Home() {
-  const [ref] = useAutoAnimate();
   const graph = useSelector(store, (state) => state.context.graph);
   const positions = _.orderBy(
     graph
@@ -28,7 +27,9 @@ export default function Home() {
     ["desc", "desc"],
   ).filter((pos) => pos.gameIds.length / pos.moves.length > 1);
 
-  const moves = _.orderBy(
+  const throttledPositions = useThrottle(positions, 750);
+
+  const movesOriginal = _.orderBy(
     positions
       .flatMap((pos) =>
         pos.moves.map((m) => ({
@@ -37,9 +38,12 @@ export default function Home() {
           cpl: -((m.to.eval?.score || 0) + (pos.eval?.score || 0)),
         })),
       )
-      .filter((m) => m.cpl < 0),
+      .filter((m) => m.cpl < -50)
+      .filter((m) => m.gameIds.length > 1),
     (move) => move.cpl,
   );
+
+  const moves = useThrottle(movesOriginal, 750);
 
   return (
     <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
@@ -48,36 +52,44 @@ export default function Home() {
         className="bg-red-50 p-4"
         onClick={() => Promise.allSettled(positions.map(analyzeCPL))}
       >
-        Analyze swings
+        Analyze bad moves
       </button>
       <h1 className="font-bold text-xl">Bad moves: {moves.length}</h1>
-      <div ref={ref} className="grid grid-cols-5 gap-4 w-full">
-        {moves.map((move) => (
-          <PositionLink
-            key={move.lan + move.from.fen}
-            fen={move.to.fen}
-            linkToFen={move.from.fen}
-            lastMoveLan={move.lan}
-            orientation={extractSideToMove(move.from.fen)}
-          >
-            <div>CPL: {move.cpl}</div>
-            <div>Played in {move.gameIds.length} games</div>
-          </PositionLink>
-        ))}
+      <div className="grid grid-cols-5 gap-4 w-full">
+        <AnimatePresence>
+          {moves.map((move) => (
+            <motion.div key={move.lan + move.from.fen} layout>
+              <PositionLink
+                key={move.lan + move.from.fen}
+                fen={move.to.fen}
+                linkToFen={move.from.fen}
+                lastMoveLan={move.lan}
+                orientation={extractSideToMove(move.from.fen)}
+              >
+                <div>CPL: {move.cpl}</div>
+                <div>Played in {move.gameIds.length} games</div>
+              </PositionLink>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
       <h1 className="font-bold text-xl">
-        Positions: {positions.length} / {graph.size}
+        Signifiant positions: {positions.length} / {graph.size}
       </h1>
       <div className="grid grid-cols-5 gap-4 w-full">
-        {positions.map((position) => (
-          <PositionLink
-            key={position.fen}
-            fen={position.fen}
-            orientation={extractSideToMove(position.fen)}
-          >
-            {position.gameIds.length} games, {position.moves.length} moves
-          </PositionLink>
-        ))}
+        <AnimatePresence>
+          {throttledPositions.map((position) => (
+            <motion.div key={position.fen} layout>
+              <PositionLink
+                key={position.fen}
+                fen={position.fen}
+                orientation={extractSideToMove(position.fen)}
+              >
+                {position.gameIds.length} games, {position.moves.length} moves
+              </PositionLink>
+            </motion.div>
+          ))}
+        </AnimatePresence>
       </div>
     </main>
   );

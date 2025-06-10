@@ -13,7 +13,7 @@ import {
 } from "effect";
 
 export interface EngineRequest {
-  fen: String;
+  fen: string;
   depth: number;
 }
 export interface EngineEvaluation {
