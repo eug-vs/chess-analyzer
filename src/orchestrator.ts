@@ -34,3 +34,25 @@ export function parsePgns(pgns: string[]) {
     ),
   );
 }
+
+export async function analyzePosition(fen: string, depth = 20) {
+  const worker = new Worker("/stockfish.wasm.js");
+
+  return new Promise<void>((resolve, reject) => {
+    worker.addEventListener("message", (message: MessageEvent<string>) => {
+      console.log(message.data);
+      if (message.data.startsWith(`info depth ${depth}`)) resolve();
+
+      const match = message.data.match(/score cp (-?\d+)/)?.[1];
+      if (match) {
+        store.send({ type: "addEval", eval: Number(match), fen });
+      }
+    });
+
+    worker.addEventListener("error", reject);
+    worker.addEventListener("messageerror", reject);
+
+    worker.postMessage(`position fen ${fen}`);
+    worker.postMessage(`go depth ${depth}`);
+  }).finally(() => worker.terminate());
+}

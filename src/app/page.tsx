@@ -4,6 +4,7 @@ import PositionLink from "./positionLink";
 import { store } from "./store";
 import PGNParser from "./pgnParser";
 import _ from "lodash";
+import { analyzeSwings, extractSideToMove } from "./utils";
 
 export default function Home() {
   const graph = useSelector(store, (state) => state.context.graph);
@@ -22,9 +23,19 @@ export default function Home() {
         Positions: {positions.length} / {graph.size}
       </h1>
       <PGNParser />
+      <button
+        className="bg-red-50 p-4"
+        onClick={() => Promise.allSettled(positions.map(analyzeSwings))}
+      >
+        Analyze swings
+      </button>
       <div className="grid grid-cols-6 gap-4 w-full">
         {positions.map((position) => (
-          <PositionLink key={position.fen} fen={position.fen}>
+          <PositionLink
+            key={position.fen}
+            fen={position.fen}
+            orientation={extractSideToMove(position.fen)}
+          >
             {position.gameIds.length} games, {position.moves.length} moves
           </PositionLink>
         ))}

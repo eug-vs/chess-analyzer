@@ -7,7 +7,7 @@ enableMapSet();
 
 export type Side = "white" | "black";
 
-interface Move {
+export interface Move {
   lan: string;
   gameIds: string[];
   to: Position;
@@ -15,14 +15,14 @@ interface Move {
   side: Side;
 }
 
-interface Position {
+export interface Position {
   fen: string;
   gameIds: string[];
   moves: Move[];
   eval?: number;
 }
 
-interface Game {
+export interface Game {
   gameId: string;
   result: 1 | 0 | -1;
   side: Side;
@@ -53,6 +53,10 @@ export const store = createStoreWithProducer(produce, {
   on: {
     addGame(context, event: { game: Game }) {
       context.games.set(event.game.gameId, event.game);
+    },
+    addEval(context, event: { fen: string; eval: number }) {
+      const position = context.graph.get(fenToUniqueKey(event.fen));
+      if (position) position.eval = event.eval;
     },
     addMove(
       context,

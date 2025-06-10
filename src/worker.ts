@@ -61,10 +61,4 @@ const WorkerLive = Runner.layer<string, never, never, StoreEvent>(
   },
 ).pipe(Layer.provide(BrowserRunner.layer));
 
-const fiber = Effect.runFork(
-  Effect.all([
-    Runner.launch(WorkerLive),
-    Effect.sync(() => console.log("Worker effect forked")),
-  ]),
-);
-console.log("worker script loaded", fiber);
+Effect.runFork(Runner.launch(WorkerLive));
