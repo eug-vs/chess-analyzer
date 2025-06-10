@@ -13,6 +13,7 @@ type Props = Omit<
 > & {
   fen: string;
   lastMoveLan?: string;
+  arrowLans?: string[];
 };
 const sigmoid = (x: number) => 1 / (1 + Math.exp(-x / 200));
 
@@ -50,6 +51,7 @@ export default function Board({
   viewOnly = true,
   coordinates = false,
   lastMoveLan,
+  arrowLans = [],
   ...props
 }: Props) {
   const [ref, entry] = useIntersectionObserver({
@@ -72,6 +74,22 @@ export default function Board({
               coordinates,
               viewOnly,
               lastMove: lastMoveLan ? lanToKeys(lastMoveLan) : undefined,
+              drawable: {
+                visible: true,
+                autoShapes: arrowLans?.map((lan) => ({
+                  orig: lanToKeys(lan)[0],
+                  dest: lanToKeys(lan)[1],
+                  brush: "main",
+                })),
+                brushes: {
+                  main: {
+                    key: "a",
+                    opacity: 0.5,
+                    color: "red",
+                    lineWidth: 10,
+                  },
+                },
+              },
               ...props,
             }}
           />

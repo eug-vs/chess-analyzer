@@ -68,6 +68,9 @@ export default function Home() {
                 fen={move.to.fen}
                 linkToFen={move.from.fen}
                 lastMoveLan={move.lan}
+                arrowLans={[move.from.eval?.bestmove].filter(
+                  (x) => x !== undefined,
+                )}
                 orientation={extractSideToMove(move.from.fen)}
               >
                 <CardTitle className="flex gap-1 items-center">

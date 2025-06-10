@@ -58,7 +58,7 @@ export const store = createStoreWithProducer(produce, {
     },
     addEngineEval(context, event: { fen: string; eval: EngineEvaluation }) {
       const position = context.graph.get(fenToUniqueKey(event.fen));
-      if (position && event.eval.depth > (position.eval?.depth || 0))
+      if (position && event.eval.depth >= (position.eval?.depth || 0))
         position.eval = event.eval;
     },
     addMove(

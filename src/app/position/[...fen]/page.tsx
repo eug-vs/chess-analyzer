@@ -1,8 +1,7 @@
 "use client";
 import Board from "@/app/board";
 import MoveLink from "@/app/moveLink";
-import PawnIcon from "@/app/pawnIcon";
-import PositionLink, { decodeFen } from "@/app/positionLink";
+import { decodeFen } from "@/app/positionLink";
 import { usePosition } from "@/app/store";
 import { analyzeCPL, extractSideToMove } from "@/app/utils";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -27,7 +26,13 @@ export default function PositionPage({ params }: Props) {
   return (
     <div className="grid xl:grid-cols-2 gap-4">
       <div className="h-min">
-        <Board fen={fen} orientation={sideToMove} />
+        <Board
+          fen={fen}
+          orientation={sideToMove}
+          arrowLans={
+            position?.eval?.bestmove ? [position.eval.bestmove] : undefined
+          }
+        />
       </div>
       <section className="space-y-4">
         <h2 className="text-muted-foreground">{fen}</h2>
@@ -52,6 +57,9 @@ export default function PositionPage({ params }: Props) {
               Evaluation (centipawns): {position.eval.score}
             </h2>
             <p className="text-muted-foreground">Depth {position.eval.depth}</p>
+            <p className="text-muted-foreground">
+              Best move {position.eval.bestmove}
+            </p>
           </section>
         )}
         <h2 className="text-xl font-bold">Moves ({position?.moves.length})</h2>
