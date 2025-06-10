@@ -2,17 +2,19 @@
 
 import { parsePgns } from "@/workers/pgnparse";
 import { fetchLichessPgns } from "./actions";
+import { Button } from "@/components/ui/button";
+import { CloudDownloadIcon } from "lucide-react";
 
 export default function PGNParser() {
   return (
-    <button
-      className="bg-red-50 p-4"
+    <Button
       onClick={async () => {
         const pgns = await fetchLichessPgns();
         parsePgns(pgns);
       }}
     >
+      <CloudDownloadIcon />
       Parse PGN
-    </button>
+    </Button>
   );
 }

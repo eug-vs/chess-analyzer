@@ -7,6 +7,10 @@ import PGNParser from "./pgnParser";
 import _ from "lodash";
 import { analyzeCPL, extractSideToMove } from "./utils";
 import { useThrottle } from "@uidotdev/usehooks";
+import { Button } from "@/components/ui/button";
+import { SettingsIcon, SwordsIcon } from "lucide-react";
+import { CardDescription, CardTitle } from "@/components/ui/card";
+import PawnIcon from "./pawnIcon";
 
 export default function Home() {
   const graph = useSelector(store, (state) => state.context.graph);
@@ -48,17 +52,17 @@ export default function Home() {
   return (
     <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
       <PGNParser />
-      <button
-        className="bg-red-50 p-4"
-        onClick={() => Promise.allSettled(positions.map(analyzeCPL))}
-      >
+      <Button onClick={() => Promise.allSettled(positions.map(analyzeCPL))}>
+        <SettingsIcon />
         Analyze bad moves
-      </button>
-      <h1 className="font-bold text-xl">Bad moves: {moves.length}</h1>
+      </Button>
+      <h1 className="font-bold text-xl">
+        Bad moves <span className="text-destructive">(??)</span>: {moves.length}
+      </h1>
       <div className="grid grid-cols-5 gap-4 w-full">
         <AnimatePresence>
           {moves.map((move) => (
-            <motion.div key={move.lan + move.from.fen} layout>
+            <motion.div key={move.lan + move.from.fen} layout className="group">
               <PositionLink
                 key={move.lan + move.from.fen}
                 fen={move.to.fen}
@@ -66,15 +70,22 @@ export default function Home() {
                 lastMoveLan={move.lan}
                 orientation={extractSideToMove(move.from.fen)}
               >
-                <div>CPL: {move.cpl}</div>
-                <div>Played in {move.gameIds.length} games</div>
+                <CardTitle className="flex gap-1 items-center">
+                  <PawnIcon />
+                  {move.cpl} CPL
+                </CardTitle>
+                <CardDescription>{move.lan}</CardDescription>
+                <CardDescription>Depth {move.from.eval?.depth}</CardDescription>
+                <CardDescription>
+                  Played in <b>{move.gameIds.length}</b> games
+                </CardDescription>
               </PositionLink>
             </motion.div>
           ))}
         </AnimatePresence>
       </div>
       <h1 className="font-bold text-xl">
-        Signifiant positions: {positions.length} / {graph.size}
+        Significant positions: {positions.length} / {graph.size}
       </h1>
       <div className="grid grid-cols-5 gap-4 w-full">
         <AnimatePresence>
@@ -85,7 +96,13 @@ export default function Home() {
                 fen={position.fen}
                 orientation={extractSideToMove(position.fen)}
               >
-                {position.gameIds.length} games, {position.moves.length} moves
+                <CardTitle className="flex gap-1 items-center">
+                  <SwordsIcon />
+                  {position.gameIds.length} games
+                </CardTitle>
+                <CardDescription>
+                  {position.moves.length} distinct moves
+                </CardDescription>
               </PositionLink>
             </motion.div>
           ))}
