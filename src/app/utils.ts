@@ -1,4 +1,4 @@
-import { analyzePositions } from "@/orchestrator";
+import { analyzePositions } from "@/workers/stockfish";
 import { Position } from "./store";
 
 export function extractSideToMove(fen: string) {

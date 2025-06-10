@@ -34,6 +34,10 @@ export default function PositionPage({ params }: Props) {
       <Link href={`https://lichess.org/analysis/${encodedFen}`}>
         Lichess link
       </Link>
+      <h2 className="text-xl font-bold">Moves ({position?.moves.length})</h2>
+      <div className="grid grid-cols-4 gap-4">
+        {position?.moves.map((move) => <MoveLink key={move.lan} move={move} />)}
+      </div>
       <h2 className="text-xl font-bold">Games ({position?.gameIds.length})</h2>
       <div className="grid">
         {position?.gameIds.map((game) => (
@@ -41,10 +45,6 @@ export default function PositionPage({ params }: Props) {
             Game: {game}
           </Link>
         ))}
-      </div>
-      <h2 className="text-xl font-bold">Moves ({position?.moves.length})</h2>
-      <div className="grid grid-cols-4 gap-4">
-        {position?.moves.map((move) => <MoveLink key={move.lan} move={move} />)}
       </div>
     </>
   );

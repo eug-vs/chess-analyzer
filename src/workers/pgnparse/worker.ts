@@ -1,8 +1,9 @@
 import * as BrowserRunner from "@effect/platform-browser/BrowserWorkerRunner";
 import * as Runner from "@effect/platform/WorkerRunner";
-import { Effect, Layer, Stream } from "effect";
-import { StoreEvent } from "./app/store";
+import { Effect, Layer, Logger, LogLevel, pipe, Stream } from "effect";
 import { Chess } from "chess.js";
+import { StoreEvent } from "@/app/store";
+import { BrowserRuntime } from "@effect/platform-browser";
 
 function getMovesFromPgn(pgn: string, player: string) {
   const chess = new Chess();
@@ -61,4 +62,10 @@ const WorkerLive = Runner.layer<string, never, never, StoreEvent>(
   },
 ).pipe(Layer.provide(BrowserRunner.layer));
 
-Effect.runFork(Runner.launch(WorkerLive));
+BrowserRuntime.runMain(
+  pipe(
+    Runner.launch(WorkerLive),
+    Logger.withMinimumLogLevel(LogLevel.Debug),
+    Effect.withLogSpan("chessjs"),
+  ),
+);

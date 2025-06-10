@@ -2,8 +2,8 @@ import { stringify, parse } from "superjson";
 import { createStoreWithProducer, EventFromStore } from "@xstate/store";
 import { produce, enableMapSet } from "immer";
 import _ from "lodash";
-import { EngineEvaluation } from "@/orchestrator";
 import { useSelector } from "@xstate/store/react";
+import { EngineEvaluation } from "@/workers/stockfish";
 
 enableMapSet();
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { parsePgns } from "@/orchestrator";
+import { parsePgns } from "@/workers/pgnparse";
 import { fetchLichessPgns } from "./actions";
 
 export default function PGNParser() {
