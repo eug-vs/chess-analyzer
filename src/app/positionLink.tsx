@@ -1,8 +1,8 @@
 import Link from "next/link";
 import Board from "./board";
 
-interface Props {
-  fen: string;
+interface Props extends React.ComponentProps<typeof Board> {
+  children?: React.ReactNode;
 }
 
 export function encodeFen(fen: string) {
@@ -12,13 +12,14 @@ export function decodeFen(fen: string) {
   return fen.replaceAll("_", " ");
 }
 
-export default function PositionLink({ fen }: Props) {
+export default function PositionLink({ children, ...props }: Props) {
   return (
     <Link
-      href={`/position/${encodeFen(fen)}`}
-      className="p-2 flex justify-center items-center rounded-lg border"
+      href={`/position/${encodeFen(props.fen)}`}
+      className="aspect-square p-2 flex justify-center flex-col rounded-lg border transition hover:-translate-y-0.5 hover:shadow-xl"
     >
-      <Board fen={fen} size={256} />
+      <Board {...props} />
+      {children}
     </Link>
   );
 }
