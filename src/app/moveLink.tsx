@@ -21,10 +21,27 @@ export default function MoveLink({ move }: Props) {
   const to = graph.get(fenToUniqueKey(move.to.fen));
   return (
     <PositionLink
-      key={move.lan}
       fen={move.to.fen}
       orientation={move.side}
-      lastMove={lanToKeys(move.lan)}
+      lastMoveLan={move.lan}
+      // drawable={{
+      //   visible: true,
+      //   autoShapes: [
+      //     {
+      //       orig: from?.eval?.bestmove.slice(0, 2),
+      //       dest: from?.eval?.bestmove.slice(2, 4),
+      //       brush: "a",
+      //     },
+      //   ],
+      //   brushes: {
+      //     a: {
+      //       key: "a",
+      //       opacity: 0.5,
+      //       color: "red",
+      //       lineWidth: 10,
+      //     },
+      //   },
+      // }}
     >
       <div className="font-bold text-lg">
         {move.lan} ({move.gameIds.length} games)

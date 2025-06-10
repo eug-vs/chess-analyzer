@@ -3,11 +3,16 @@ import Chessground from "@react-chess/chessground";
 import "./chessground.css";
 import { useIntersectionObserver, usePrevious } from "@uidotdev/usehooks";
 import { useSelector } from "@xstate/store/react";
-import { fenToUniqueKey, store } from "./store";
+import { fenToUniqueKey, Move, store } from "./store";
 import { extractSideToMove } from "./utils";
+import { Key } from "@lichess-org/chessground/types";
 
-type Props = NonNullable<React.ComponentProps<typeof Chessground>["config"]> & {
+type Props = Omit<
+  NonNullable<React.ComponentProps<typeof Chessground>["config"]>,
+  "lastMove"
+> & {
   fen: string;
+  lastMoveLan?: string;
 };
 const sigmoid = (x: number) => 1 / (1 + Math.exp(-x / 200));
 
@@ -36,10 +41,15 @@ function EvalBar({ fen, orientation }: Pick<Props, "fen" | "orientation">) {
   );
 }
 
+function lanToKeys(lan: string): [Key, Key] {
+  return [lan.slice(0, 2) as Key, lan.slice(2, 4) as Key];
+}
+
 export default function Board({
   fen,
   viewOnly = true,
   coordinates = false,
+  lastMoveLan,
   ...props
 }: Props) {
   const [ref, entry] = useIntersectionObserver({
@@ -61,6 +71,7 @@ export default function Board({
               fen,
               coordinates,
               viewOnly,
+              lastMove: lastMoveLan ? lanToKeys(lastMoveLan) : undefined,
               ...props,
             }}
           />
