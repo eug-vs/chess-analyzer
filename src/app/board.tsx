@@ -4,6 +4,7 @@ import "./chessground.css";
 import { useIntersectionObserver, usePrevious } from "@uidotdev/usehooks";
 import { useSelector } from "@xstate/store/react";
 import { fenToUniqueKey, store } from "./store";
+import { extractSideToMove } from "./utils";
 
 type Props = NonNullable<React.ComponentProps<typeof Chessground>["config"]> & {
   fen: string;
@@ -15,6 +16,9 @@ function EvalBar({ fen, orientation }: Pick<Props, "fen" | "orientation">) {
     store,
     (state) => state.context.graph.get(fenToUniqueKey(fen))?.eval?.score,
   );
+  const sideToMove = extractSideToMove(fen);
+  const sign = sideToMove === orientation ? -1 : 1;
+
   return (
     <div className="relative w-[3%] shrink-0">
       <div
@@ -23,7 +27,7 @@ function EvalBar({ fen, orientation }: Pick<Props, "fen" | "orientation">) {
       ></div>
       <div
         style={{
-          height: `${Math.round(sigmoid(engineEval || 0.0) * 100) + 0.5}%`,
+          height: `${50 * (1 + sign * (sigmoid(engineEval || 0.0) * 2 - 1))}%`,
           background: orientation,
         }}
         className="z-20 h-[50%] w-full absolute left-0 invert transition-[height] duration-300"

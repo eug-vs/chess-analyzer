@@ -13,8 +13,16 @@ export default function Home() {
       .values()
       .filter((p) => p.moves.length)
       .toArray(),
-    (pos) => pos.gameIds.length / pos.moves.length,
-    "desc",
+    [
+      (pos) => pos.gameIds.length / pos.moves.length,
+      (pos) =>
+        _.sum(
+          pos.moves.map(
+            (move) => -(move.to.eval?.score || 0) + (pos.eval?.score || 0),
+          ),
+        ),
+    ],
+    ["desc", "desc"],
   ).filter((pos) => pos.gameIds.length / pos.moves.length > 1);
 
   return (

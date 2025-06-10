@@ -31,7 +31,7 @@ export default function MoveLink({ move }: Props) {
       </div>
       <div className="font-bold text-lg">Eval: {to?.eval?.score}</div>
       <div className="font-bold text-lg">
-        Swing: {-(to?.eval?.score! + from?.eval?.score!)}
+        CPL: {-(to?.eval?.score! + from?.eval?.score!)}
       </div>
     </PositionLink>
   );
