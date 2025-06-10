@@ -1,5 +1,4 @@
 import { store } from "@/app/store";
-import { Chess } from "chess.js";
 import {
   Context,
   Effect,
@@ -47,19 +46,6 @@ const stockfishLayer = Layer.scoped(StockfishPool, pool);
 
 const StockfishRuntime = ManagedRuntime.make(stockfishLayer);
 
-function checkMoveValidity(fen: string, lan: string) {
-  return Effect.try(() => {
-    const board = new Chess(fen);
-    board.move(lan);
-  }).pipe(
-    Effect.catchAll((e) =>
-      Effect.logError(
-        `Could not apply best move ${lan} for fen ${fen}, ${e.message}`,
-      ),
-    ),
-  );
-}
-
 export async function analyzePositions(fens: string[], depth = 20) {
   const analyzePosition = (fen: string, depth: number) =>
     StockfishPool.pipe(
@@ -73,20 +59,14 @@ export async function analyzePositions(fens: string[], depth = 20) {
             stockfish.postMessage(`go depth ${depth}`);
           }),
           Effect.flatMap(() => {
-            let lastSeenDepth = 0;
             return Stream.fromEventListener(stockfish, "message").pipe(
               Stream.filter((event) => event instanceof MessageEvent),
               Stream.map((event) => event.data),
               Stream.filter((data) => typeof data === "string"),
               Stream.tap(Effect.logDebug),
               Stream.tapError(Effect.logError),
-              // Make sure messages are coming in the correct order
-              // This is actually preventing some very nasty bug
-              // that I don't even fully comprehend
-              Stream.dropUntil((uciResponse) =>
-                uciResponse.startsWith(`info depth ${lastSeenDepth + 1}`),
-              ),
-              Stream.tap(() => Effect.sync(() => lastSeenDepth++)),
+              Stream.takeUntil((result) => result.startsWith(`bestmove`)),
+              Stream.filter((result) => result.startsWith("info depth")),
               Stream.map((uciResponse) => {
                 const parts = uciResponse.split(" ");
                 const bestmove = parts[parts.indexOf("pv") + 1];
@@ -98,8 +78,6 @@ export async function analyzePositions(fens: string[], depth = 20) {
                   bestmove,
                 };
               }),
-              Stream.tap((data) => checkMoveValidity(fen, data.bestmove)),
-              Stream.takeUntil((result) => result.depth === depth),
               Stream.runForEach((engineResult) =>
                 Effect.sync(() => {
                   store.send({
