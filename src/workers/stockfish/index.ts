@@ -32,7 +32,7 @@ const stockfishLayer = Layer.scoped(
   pipe(
     EffectWorker.makePool<EngineRequest, EngineEvaluation, never>({
       minSize: 0,
-      maxSize: 4,
+      maxSize: navigator.hardwareConcurrency - 1,
       timeToLive: "1 minutes",
     }),
     Effect.provide(

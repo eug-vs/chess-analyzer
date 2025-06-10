@@ -22,7 +22,7 @@ const chessPoolLayer = Layer.scoped(
   pipe(
     EffectWorker.makePool<string, StoreEvent, never>({
       minSize: 0,
-      maxSize: 16,
+      maxSize: navigator.hardwareConcurrency - 1,
       timeToLive: "30 seconds",
     }),
     Effect.provide(
