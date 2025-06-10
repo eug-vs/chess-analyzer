@@ -16,7 +16,7 @@ export default function PositionLink({ children, ...props }: Props) {
   return (
     <Link
       href={`/position/${encodeFen(props.fen)}`}
-      className="aspect-square p-2 flex justify-center flex-col rounded-lg border transition hover:-translate-y-0.5 hover:shadow-xl"
+      className="p-2 flex justify-center flex-col rounded-lg border transition hover:-translate-y-0.5 hover:shadow-xl "
     >
       <Board {...props} />
       {children}

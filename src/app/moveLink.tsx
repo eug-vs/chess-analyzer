@@ -29,9 +29,9 @@ export default function MoveLink({ move }: Props) {
       <div className="font-bold text-lg">
         {move.lan} ({move.gameIds.length} games)
       </div>
-      <div className="font-bold text-lg">Eval: {to?.eval}</div>
+      <div className="font-bold text-lg">Eval: {to?.eval?.score}</div>
       <div className="font-bold text-lg">
-        Swing: {-(to?.eval! + from?.eval!)}
+        Swing: {-(to?.eval?.score! + from?.eval?.score!)}
       </div>
     </PositionLink>
   );

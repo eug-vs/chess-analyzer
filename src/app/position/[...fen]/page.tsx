@@ -1,9 +1,8 @@
 "use client";
 import MoveLink from "@/app/moveLink";
 import PositionLink, { decodeFen } from "@/app/positionLink";
-import { fenToUniqueKey, store } from "@/app/store";
-import { analyzeSwings, extractSideToMove } from "@/app/utils";
-import { useSelector } from "@xstate/store/react";
+import { usePosition } from "@/app/store";
+import { analyzeCPL, extractSideToMove } from "@/app/utils";
 import Link from "next/link";
 import { use } from "react";
 
@@ -18,21 +17,15 @@ export default function PositionPage({ params }: Props) {
   const encodedFen = fenParts.join("/");
   const fen = decodeFen(encodedFen);
 
-  const position = useSelector(store, (state) =>
-    state.context.graph.get(fenToUniqueKey(fen)),
-  );
+  const position = usePosition(fen);
   const sideToMove = extractSideToMove(fen);
-  console.log({ position });
 
   return (
     <>
       <h1 className="text-xl font-bold">FEN: {fen}</h1>
       {position && (
-        <button
-          className="bg-red-50 p-4"
-          onClick={() => analyzeSwings(position)}
-        >
-          Analyze moves ({position?.eval})
+        <button className="bg-red-50 p-4" onClick={() => analyzeCPL(position)}>
+          Analyze moves ({position.eval?.score}, depth {position.eval?.depth})
         </button>
       )}
       <div className="max-w-128">
