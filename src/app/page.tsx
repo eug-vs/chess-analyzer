@@ -4,7 +4,7 @@ import PositionLink from "./positionLink";
 import { store } from "./store";
 import PGNParser from "./pgnParser";
 import _ from "lodash";
-import { analyzeSwings, extractSideToMove } from "./utils";
+import { analyzeCPL, extractSideToMove } from "./utils";
 
 export default function Home() {
   const graph = useSelector(store, (state) => state.context.graph);
@@ -25,11 +25,11 @@ export default function Home() {
       <PGNParser />
       <button
         className="bg-red-50 p-4"
-        onClick={() => Promise.allSettled(positions.map(analyzeSwings))}
+        onClick={() => Promise.allSettled(positions.map(analyzeCPL))}
       >
         Analyze swings
       </button>
-      <div className="grid grid-cols-6 gap-4 w-full">
+      <div className="grid grid-cols-5 gap-4 w-full">
         {positions.map((position) => (
           <PositionLink
             key={position.fen}

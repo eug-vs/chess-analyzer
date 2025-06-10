@@ -2,6 +2,8 @@ import { stringify, parse } from "superjson";
 import { createStoreWithProducer, EventFromStore } from "@xstate/store";
 import { produce, enableMapSet } from "immer";
 import _ from "lodash";
+import { EngineEvaluation } from "@/orchestrator";
+import { useSelector } from "@xstate/store/react";
 
 enableMapSet();
 
@@ -19,7 +21,7 @@ export interface Position {
   fen: string;
   gameIds: string[];
   moves: Move[];
-  eval?: number;
+  eval?: EngineEvaluation;
 }
 
 export interface Game {
@@ -54,9 +56,10 @@ export const store = createStoreWithProducer(produce, {
     addGame(context, event: { game: Game }) {
       context.games.set(event.game.gameId, event.game);
     },
-    addEval(context, event: { fen: string; eval: number }) {
+    addEngineEval(context, event: { fen: string; eval: EngineEvaluation }) {
       const position = context.graph.get(fenToUniqueKey(event.fen));
-      if (position) position.eval = event.eval;
+      if (position && event.eval.depth > (position.eval?.depth || 0))
+        position.eval = event.eval;
     },
     addMove(
       context,
@@ -108,3 +111,9 @@ const saveSnapshot = _.throttle(
 store.subscribe((snapshot) => {
   saveSnapshot(snapshot.context);
 });
+
+export function usePosition(fen: string) {
+  return useSelector(store, (state) =>
+    state.context.graph.get(fenToUniqueKey(fen)),
+  );
+}

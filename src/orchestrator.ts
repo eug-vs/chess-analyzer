@@ -1,12 +1,12 @@
 import { Effect, pipe, Stream } from "effect";
 import { BrowserRuntime, BrowserWorker } from "@effect/platform-browser";
-import { makePool } from "@effect/platform/Worker";
+import * as EffectWorker from "@effect/platform/Worker";
 import { store, StoreEvent } from "./app/store";
 
 export function parsePgns(pgns: string[]) {
   return BrowserRuntime.runMain(
     pipe(
-      makePool<string, StoreEvent, never>({
+      EffectWorker.makePool<string, StoreEvent, never>({
         size: 8,
       }),
       Effect.flatMap((pool) =>
@@ -35,24 +35,55 @@ export function parsePgns(pgns: string[]) {
   );
 }
 
-export async function analyzePosition(fen: string, depth = 20) {
-  const worker = new Worker("/stockfish.wasm.js");
+export interface EngineRequest {
+  fen: String;
+  depth: number;
+}
+export interface EngineEvaluation {
+  score: number;
+  depth: number;
+  bestmove: string;
+}
 
-  return new Promise<void>((resolve, reject) => {
-    worker.addEventListener("message", (message: MessageEvent<string>) => {
-      console.log(message.data);
-      if (message.data.startsWith(`info depth ${depth}`)) resolve();
-
-      const match = message.data.match(/score cp (-?\d+)/)?.[1];
-      if (match) {
-        store.send({ type: "addEval", eval: Number(match), fen });
-      }
-    });
-
-    worker.addEventListener("error", reject);
-    worker.addEventListener("messageerror", reject);
-
-    worker.postMessage(`position fen ${fen}`);
-    worker.postMessage(`go depth ${depth}`);
-  }).finally(() => worker.terminate());
+export async function analyzePositions(fens: string[], depth = 20) {
+  return BrowserRuntime.runMain(
+    pipe(
+      EffectWorker.makePool<EngineRequest, EngineEvaluation, never>({
+        size: 8,
+      }),
+      Effect.flatMap((pool) =>
+        Effect.forEach(
+          fens,
+          (fen) =>
+            pool
+              .execute({
+                fen,
+                depth,
+              })
+              .pipe(
+                Stream.runForEach((engineEval) =>
+                  Effect.sync(() =>
+                    store.send({
+                      type: "addEngineEval",
+                      fen,
+                      eval: engineEval,
+                    }),
+                  ),
+                ),
+              ),
+          {
+            concurrency: "unbounded",
+          },
+        ),
+      ),
+      Effect.tapError(Effect.logError),
+      Effect.tap(Effect.log),
+      Effect.scoped,
+      Effect.provide(
+        BrowserWorker.layer(
+          () => new Worker(new URL("./stockfish.ts", import.meta.url)),
+        ),
+      ),
+    ),
+  );
 }
