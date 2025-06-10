@@ -1,5 +1,5 @@
 "use client";
-import { motion, AnimatePresence } from "motion/react";
+import { AnimatePresence } from "motion/react";
 import { useSelector } from "@xstate/store/react";
 import PositionLink from "./positionLink";
 import { store } from "./store";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { SettingsIcon, SwordsIcon } from "lucide-react";
 import { CardDescription, CardTitle } from "@/components/ui/card";
 import PawnIcon from "./pawnIcon";
+import LazilyAnimated from "@/components/ui/lazilyanimated";
 
 export default function Home() {
   const graph = useSelector(store, (state) => state.context.graph);
@@ -43,7 +44,8 @@ export default function Home() {
         })),
       )
       .filter((m) => m.cpl < -50)
-      .filter((m) => m.gameIds.length > 1),
+      .filter((m) => m.gameIds.length > 1)
+      .filter((m) => m.from.eval?.bestmove !== m.lan),
     (move) => move.cpl,
   );
 
@@ -59,10 +61,10 @@ export default function Home() {
       <h1 className="font-bold text-xl">
         Bad moves <span className="text-destructive">(??)</span>: {moves.length}
       </h1>
-      <div className="grid grid-cols-5 gap-4 w-full">
+      <div className="grid 2xl:grid-cols-5 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-4 w-full">
         <AnimatePresence>
           {moves.map((move) => (
-            <motion.div key={move.lan + move.from.fen} layout className="group">
+            <LazilyAnimated key={move.lan + move.from.fen} className="group">
               <PositionLink
                 key={move.lan + move.from.fen}
                 fen={move.to.fen}
@@ -83,17 +85,17 @@ export default function Home() {
                   Played in <b>{move.gameIds.length}</b> games
                 </CardDescription>
               </PositionLink>
-            </motion.div>
+            </LazilyAnimated>
           ))}
         </AnimatePresence>
       </div>
       <h1 className="font-bold text-xl">
         Significant positions: {positions.length} / {graph.size}
       </h1>
-      <div className="grid grid-cols-5 gap-4 w-full">
+      <div className="grid 2xl:grid-cols-5 xl:grid-cols-4 lg:grid-cols-3 md:grid-cols-2 gap-4 w-full">
         <AnimatePresence>
           {throttledPositions.map((position) => (
-            <motion.div key={position.fen} layout>
+            <LazilyAnimated key={position.fen}>
               <PositionLink
                 key={position.fen}
                 fen={position.fen}
@@ -107,7 +109,7 @@ export default function Home() {
                   {position.moves.length} distinct moves
                 </CardDescription>
               </PositionLink>
-            </motion.div>
+            </LazilyAnimated>
           ))}
         </AnimatePresence>
       </div>
