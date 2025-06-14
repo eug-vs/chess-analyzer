@@ -1,15 +1,8 @@
 import { fenToUniqueKey, store } from "@/app/store";
-import {
-  Context,
-  Effect,
-  Layer,
-  Logger,
-  LogLevel,
-  ManagedRuntime,
-  pipe,
-  Pool,
-  Stream,
-} from "effect";
+import { Effect, Logger, LogLevel, ManagedRuntime, pipe, Stream } from "effect";
+import { webWorkersLayer } from "./webWorker";
+import { httpWorkersLayer } from "./httpWorker";
+import { EnginePool } from "./enginePool";
 
 export interface EngineRequest {
   fen: string;
@@ -21,42 +14,20 @@ export interface EngineEvaluation {
   bestmove: string;
 }
 
-class StockfishPool extends Context.Tag("StockfishPool")<
-  StockfishPool,
-  Pool.Pool<Worker>
->() {}
+const USE_HTTP_WORKERS = false;
 
-const pool = Pool.makeWithTTL({
-  min: 0,
-  max: navigator.hardwareConcurrency - 1,
-  timeToLive: "30 seconds",
-  concurrency: 1,
-  acquire: Effect.acquireRelease(
-    Effect.sync(
-      () => new Worker(new URL("/stockfish.wasm.js", location.origin)),
-    ).pipe(Effect.tap((worker) => Effect.log("Spawned new worker", worker))),
-    (worker) =>
-      Effect.sync(() => worker.terminate()).pipe(
-        Effect.tap((worker) => Effect.log("Terminating worker", worker)),
-      ),
-  ),
-});
-
-const stockfishLayer = Layer.scoped(StockfishPool, pool);
-
-const StockfishRuntime = ManagedRuntime.make(stockfishLayer);
+const engineRuntime = ManagedRuntime.make(
+  USE_HTTP_WORKERS ? httpWorkersLayer : webWorkersLayer,
+);
 
 export async function analyzePositions(fens: string[], depth = 20) {
   const analyzePosition = (fen: string, depth: number) =>
-    StockfishPool.pipe(
+    EnginePool.pipe(
       Effect.flatMap((pool) => pool.get),
-      Effect.flatMap((stockfish) =>
+      Effect.flatMap((engine) =>
         pipe(
-          Effect.sync(() => {
-            stockfish.postMessage(`ucinewgame`);
-            stockfish.postMessage(`position fen ${fen}`);
-            stockfish.postMessage(`go depth ${depth}`);
-          }),
+          Stream.make(`ucinewgame`, `position fen ${fen}`, `go depth ${depth}`),
+          Stream.run(engine.stdin),
           Effect.flatMap(() =>
             Effect.acquireUseRelease(
               Effect.sync(() =>
@@ -67,13 +38,10 @@ export async function analyzePositions(fens: string[], depth = 20) {
                 }),
               ),
               () =>
-                Stream.fromEventListener(stockfish, "message").pipe(
-                  Stream.filter((event) => event instanceof MessageEvent),
-                  Stream.map((event) => event.data),
-                  Stream.filter((data) => typeof data === "string"),
+                engine.stdout.pipe(
                   Stream.tap(Effect.logDebug),
                   Stream.tapError(Effect.logError),
-                  Stream.takeUntil((result) => result.startsWith(`bestmove`)),
+                  Stream.takeUntil((result) => result.startsWith("bestmove")),
                   Stream.filter((result) => result.startsWith("info depth")),
                   Stream.map((uciResponse) => {
                     const parts = uciResponse.split(" ");
@@ -113,7 +81,7 @@ export async function analyzePositions(fens: string[], depth = 20) {
       Effect.withLogSpan(`analyzePosition`),
     );
 
-  return StockfishRuntime.runPromise(
+  return engineRuntime.runPromise(
     pipe(
       Effect.forEach(
         fens,
