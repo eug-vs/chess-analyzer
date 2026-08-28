@@ -2,7 +2,7 @@
 
 export async function fetchLichessPgns(
   playerName = "eug_vs",
-  since = new Date("2025-06-01"),
+  since = new Date("2026-06-01"),
   perfType = ["blitz", "bullet"],
 ) {
   const TRUE = "true";
